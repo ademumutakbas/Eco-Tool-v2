@@ -1,37 +1,39 @@
-// Auto-generate input fields
-const inputsDiv = document.getElementById("inputs");
-
+// FIELD CONFIG
 const FIELDS = [
-    { id: "companies", label: "Toplam şirket sayısı (1–12, 0 = sınırsız)", default: 6, img: "images/companies.png" },
-    { id: "engine", label: "Automated Engine Seviyesi (1–7)", default: 3, img: "images/engine.png" },
-    { id: "bonus", label: "Şirket üretim bonusu (%)", default: 31, img: "images/bonus.png" },
-    { id: "price", label: "Ürün market satış fiyatı (PP başına)", default: 0.05, img: "images/price.png" },
-    { id: "salary", label: "Maaş (PP başına)", default: 0.07, img: "images/salary.png" },
-    { id: "tax", label: "Vergi oranı (%)", default: 8, img: "images/tax.png" },
-    { id: "skill", label: "Toplam Skill Puanı", default: 56, img: "images/skill.png" }
+    { id: "companies", tr: "Toplam şirket sayısı (1–12, 0 = sınırsız)", en: "Total companies (1–12, 0 = unlimited)", default: 6, img: "images/companies.png" },
+    { id: "engine", tr: "Automated Engine Seviyesi (1–7)", en: "Automated Engine Level (1–7)", default: 3, img: "images/automated_engine.png" },
+    { id: "bonus", tr: "Şirket üretim bonusu (%)", en: "Company production bonus (%)", default: 31, img: "images/comp_bonus.png" },
+    { id: "price", tr: "Ürün market satış fiyatı (PP başına)", en: "Market selling price (per PP)", default: 0.05, img: "images/market.png" },
+    { id: "salary", tr: "Maaş (PP başına)", en: "Salary (per PP)", default: 0.07, img: "images/PP_maas.png" },
+    { id: "tax", tr: "Vergi oranı (%)", en: "Tax rate (%)", default: 8, img: "images/tax.png" },
+    { id: "skill", tr: "Toplam Skill Puanı", en: "Total Skill Points", default: 56, img: "images/skill_point.png" }
 ];
 
-// Generate HTML inputs
+const inputsDiv = document.getElementById("inputs");
+
+// GENERATE INPUT UI
 FIELDS.forEach(f => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "input-row";
-    wrapper.innerHTML = `
+    const row = document.createElement("div");
+    row.classList.add("input-row");
+    row.innerHTML = `
         <img src="${f.img}" class="icon">
         <div class="input-col">
-            <label>${f.label}</label>
+            <label>${f.tr}<br><small>${f.en}</small></label>
             <input id="${f.id}" type="text" value="${f.default}">
         </div>
     `;
-    inputsDiv.appendChild(wrapper);
+    inputsDiv.appendChild(row);
 });
 
-// Python → JS engine data
+// ENGINE VALUES (PP per cycle)
 const engineValues = { 1:24, 2:48, 3:72, 4:96, 5:120, 6:144, 7:168 };
 
-// Skill cost function
-function skillCost(l) { return (l * (l + 1)) / 2; }
+// SKILL COST
+function skillCost(l) {
+    return (l * (l + 1)) / 2;
+}
 
-// Calculate button handler
+// CALCULATE LOGIC
 document.getElementById("calculate").addEventListener("click", () => {
     const current_companies = parseInt(document.getElementById("companies").value);
     const engine_level = parseInt(document.getElementById("engine").value);
@@ -47,9 +49,8 @@ document.getElementById("calculate").addEventListener("click", () => {
     const base_companies = 2;
 
     let lc_levels = [];
-    if (current_companies === 0) {
-        lc_levels = levels;
-    } else {
+    if (current_companies === 0) lc_levels = levels;
+    else {
         const maxLc = Math.max(current_companies - base_companies, 0);
         lc_levels = [...Array(maxLc + 1).keys()];
     }
@@ -61,13 +62,7 @@ document.getElementById("calculate").addEventListener("click", () => {
         levels.forEach(Lw => {
             levels.forEach(Lp => {
                 lc_levels.forEach(Lc => {
-
-                    const totalSkill =
-                        skillCost(Lg) +
-                        skillCost(Lw) +
-                        skillCost(Lp) +
-                        skillCost(Lc);
-
+                    const totalSkill = skillCost(Lg)+skillCost(Lw)+skillCost(Lp)+skillCost(Lc);
                     if (totalSkill > S) return;
 
                     const Xp = 10 + 3 * Lp;
@@ -89,8 +84,7 @@ document.getElementById("calculate").addEventListener("click", () => {
         });
     });
 
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = `
+    document.getElementById("results").innerHTML = `
         <h2>🔝 En İyi Skill Dağılımı</h2>
         <p><b>Entrepreneurship:</b> ${best.Lg}</p>
         <p><b>Energy:</b> ${best.Lw}</p>
